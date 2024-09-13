@@ -7,10 +7,30 @@ import numpy as np
 import tensorflow as tf
 
 
-app = fastAPI()
+app = FastAPI()
 
 
 # Função pra carregar e processar a imagem
+model = tf.keras.applications.MobileNetV2(weights="imagenet")
+
+def predict_image(image):
+    image = image.resize((224, 224))
+    
+    #converter a imagem em um array numpy e pre-processar para o modelo
+    image_array = np.array(image)
+    image_array = np.expand_dims(image_array, axis=0)
+    image_array = tf.keras.applications.mobilenet_v2.preprocess_input(image_array)
+
+    # fazer a previsao
+    predictions = model.predict(image_array)
+
+    # decodificar os resultados
+    decoded_predictions = tf.keras.applications.mobilenet_v2.decode_predictions(predictions, top=1)
+
+    label = decoded_predictions[0][0][1]
+    confidence = float(decoded_predictions[0][0][2])
+
+    return {"label": label, "confidence": confidence}
 
 def ler_imagem(file) -> Image.Image:
     image = Image.open(BytesIO(file))
@@ -25,11 +45,6 @@ async def create_upload_file(file: UploadFile = File(...)):
 
     return JSONResponse(content={"results": results})
 
-# Função de exemplo que simula a previsao
-def predict_image(image):
-    # Aqui carregaria um modelo e processaria a imagem
-    # exemplo de previsao dummy
-    return {"label": "cat", "confidence": 0.98}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
