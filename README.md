@@ -1,2 +1,2 @@
 # image-recognition
-Image recognition using react/fastAPI.
+Image recognition using react/fastAPI
